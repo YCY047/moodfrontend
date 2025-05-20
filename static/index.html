@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>心情日記上傳</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+   
+    <h1>📝 上傳你的心情</h1>
+    <!-- 上傳心情 -->
+    <form id="mood-form" class="form-section" method="post">
+      <label>使用者名稱：<input name="user" required /></label>
+      <label>心情文字：<input name="mood" required /></label>
+      <label>分數 (1~5)：<input name="score" type="number" min="1" max="5" required /></label>
+      <button type="submit">送出心情</button>
+    </form>
+
+    <hr />
+    <!-- 上傳照片 -->
+    <h2>📷 上傳照片</h2>
+    <form id="photo-form" class="form-section" enctype="multipart/form-data">
+      <label>使用者名稱：<input name="user" required /></label>
+      <label>描述文字：<input name="description" required /></label>
+      <label>
+        選擇圖片：
+        <input type="file" name="file" accept="image/*" required id="file-input" />
+      </label>
+      <img id="photo-preview" style="max-width: 200px; margin-top: 10px; display: none;" />
+      <button type="submit">上傳照片</button>
+    </form>
+
+    <div class="actions">
+      <button onclick="location.href='/diary.html'">📖 查看所有心情日記</button>
+    </div>
+  </div>
+
+  <script>
+    // 預覽圖片功能
+    document.getElementById("file-input").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById("photo-preview");
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.src = "";
+        preview.style.display = "none";
+      }
+    });
+
+    document.getElementById("mood-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      await fetch("/mood", { method: "POST", body: form });
+      alert("心情已送出！");
+      e.target.reset();
+    });
+
+    document.getElementById("photo-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const res = await fetch("/photo", { method: "POST", body: form });
+      if (res.ok) {
+        alert("照片上傳成功！");
+        e.target.reset();
+        document.getElementById("photo-preview").style.display = "none";
+        document.getElementById("photo-preview").src = "";
+        loadPhotos();
+      } else {
+        alert("照片上傳失敗！");
+      }
+    });
+
+    async function loadPhotos() {
+      const res = await fetch("/summary/all");
+      const data = await res.json();
+      const container = document.getElementById("photo-list");
+      container.innerHTML = "";
+      for (const [date, users] of Object.entries(data)) {
+        for (const [user, entries] of Object.entries(users)) {
+          for (const entry of entries) {
+            if (entry.photo) {
+              const img = document.createElement("img");
+              img.src = `/uploads/${entry.photo.file}`;
+              img.alt = entry.photo.description;
+              img.style.maxWidth = "200px";
+              img.style.margin = "10px";
+
+              const caption = document.createElement("p");
+              caption.textContent = `${date} ${user}：${entry.photo.description}`;
+
+              const wrapper = document.createElement("div");
+              wrapper.appendChild(img);
+              wrapper.appendChild(caption);
+
+              container.appendChild(wrapper);
+            }
+          }
+        }
+      }
+    }
+
+    loadPhotos();
+  </script>
+</body>
+</html>

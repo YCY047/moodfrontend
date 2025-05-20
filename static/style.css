@@ -1,0 +1,58 @@
+body {
+  font-family: "Microsoft JhengHei", sans-serif;
+  background-color: #fffaf0;
+  color: #333;
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+  color: #444;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin: 10px 0;
+}
+
+input, button {
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.actions {
+  margin-bottom: 20px;
+}
+
+.entry {
+  padding: 10px;
+  border-left: 4px solid #4caf50;
+  margin-bottom: 10px;
+  background: #f1f8f4;
+}

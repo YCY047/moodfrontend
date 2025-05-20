@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>心情日記列表</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>📖 所有心情日記</h1>
+    <div class="actions">
+      <button onclick="location.href='/'">⬅️ 回到上傳心情</button>
+      <button onclick="clearToday()">🧹 清除今天</button>
+      <button onclick="clearAll()">🗑️ 全部清除</button>
+    </div>
+
+    <div id="mood-container" class="mood-container">載入中...</div>
+  </div>
+
+  <script>
+    async function loadMoods() {
+      const res = await fetch('/summary/all');
+      const data = await res.json();
+      const container = document.getElementById('mood-container');
+      container.innerHTML = '';
+
+      if (!Object.keys(data).length) {
+        container.textContent = '目前沒有任何心情資料';
+        return;
+      }
+
+      const allEntries = [];
+      for (const [date, users] of Object.entries(data)) {
+        for (const [user, entries] of Object.entries(users)) {
+          for (const entry of entries) {
+            allEntries.push({ date, user, entry, time: entry.time || '' });
+          }
+        }
+      }
+
+      allEntries.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+      let currentDate = '';
+      for (const { date, user, entry } of allEntries) {
+        if (date !== currentDate) {
+          currentDate = date;
+          const dateDiv = document.createElement('div');
+          dateDiv.innerHTML = `<h3>${date}</h3>`;
+          container.appendChild(dateDiv);
+        }
+
+        const entryDiv = document.createElement('div');
+        entryDiv.classList.add("entry");
+
+        let moodHtml = '';
+        if (entry.mood && typeof entry.mood.text === 'string' && typeof entry.mood.score !== 'undefined') {
+          moodHtml = `心情：${entry.mood.text}（${entry.mood.score}分）`;
+        }
+
+        let photoHtml = '';
+        if (entry.photo && typeof entry.photo.file === 'string') {
+          photoHtml = `
+            <br />
+            <img src="/uploads/${entry.photo.file}" alt="${entry.photo.description || ''}" style="max-width: 200px;" />
+            <br />
+            描述：${entry.photo.description || ''}
+          `;
+        }
+
+        if (!moodHtml && !photoHtml) {
+          entryDiv.innerHTML = `<p><strong>${user}</strong>：無心情資料</p>`;
+        } else {
+          entryDiv.innerHTML = `<p><strong>${user}</strong>：${moodHtml}${photoHtml}</p><hr>`;
+        }
+
+        container.lastElementChild.appendChild(entryDiv);
+      }
+    }
+
+    async function clearToday() {
+      const res = await fetch('/clear/today', { method: 'DELETE' });
+      const result = await res.json();
+      alert(result.message);
+      loadMoods();
+    }
+
+    async function clearAll() {
+      const res = await fetch('/clear/all', { method: 'DELETE' });
+      const result = await res.json();
+      alert(result.message);
+      loadMoods();
+    }
+
+    loadMoods();
+  </script>
+</body>
+</html>
